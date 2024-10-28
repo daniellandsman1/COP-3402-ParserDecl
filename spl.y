@@ -118,9 +118,14 @@ extern void setProgAST(block_t t);
 %%
  /* Write your grammar rules below and before the next %% */
 
+program : block "." { setProgAST($1); } ;
 
+block : "begin" constDecls varDecls procDecls stmts "end" { $$ = ast_block($1, $2, $3, $4, $5); } ;
 
+constDecls : empty { $$ = ast_const_decls_empty($1); } ;
+           | constDecls constDecl { $$ = ast_const_decls($1, $2); } ;
 
+constDecl : "const" constDefList { $$ = ast_const_decl($2); } ;
 
 %%
 
