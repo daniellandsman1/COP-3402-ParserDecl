@@ -1,4 +1,4 @@
-// Daniel Landsman
+// Daniel Landsman, Ryan Rohan
 // scope.c: scope file, includes function bodies
 
 #include <stdlib.h>
@@ -29,15 +29,28 @@ scope* scope_initialize()
 }
 
 // Pre-Conditions: my_scope is not NULL.
+// Post-Conditions: Frees all memory associated with the given scope.
+void scope_destroy(scope* my_scope)
+{
+    if (my_scope == NULL) return;
+
+    // Free each association in the scope
+    for (int i = 0; i < my_scope->size; i++) {
+        if (my_scope->assoc_arr[i] != NULL) {
+            free(my_scope->assoc_arr[i]->attrs);  // Free attributes
+            free(my_scope->assoc_arr[i]);         // Free association struct
+        }
+    }
+    free(my_scope); // Free the scope itself
+}
+
+// Pre-Conditions: my_scope is not NULL.
 // Post-Conditions: Returns the number of associations in my_scope.
 address_type scope_loc_count(scope* my_scope)
 {
-    // Check if scope is NULL
-    if (my_scope == NULL)
-    {
+    if (my_scope == NULL) {
         bail_with_error("Attempted to get number of associations of a NULL scope!");
     }
-
     return my_scope->loc_count;
 }
 
@@ -45,12 +58,9 @@ address_type scope_loc_count(scope* my_scope)
 // Post-Conditions: Returns the current size of my_scope.
 unsigned int scope_size(scope* my_scope)
 {
-    // Check if scope is NULL
-    if (my_scope == NULL)
-    {
+    if (my_scope == NULL) {
         bail_with_error("Attempted to get size of a NULL scope!");
     }
-
     return my_scope->size;
 }
 
@@ -76,38 +86,22 @@ bool scope_declared(scope* my_scope, const char* my_name)
 // my_scope. Produces an error message if space cannot be allocated.
 void scope_insert(scope* my_scope, const char* my_name, id_attrs* my_attrs)
 {
-    // Check if name has an association in scope
-    if (scope_declared(my_scope, my_name))
-    {
+    if (scope_declared(my_scope, my_name)) {
         bail_with_error("An association already exists for (%s)!", my_name);
     }
-
-    // Check if attributes are NULL
-    if (my_attrs == NULL)
-    {
+    if (my_attrs == NULL) {
         bail_with_error("Attempted to insert an association with NULL attributes!");
     }
-
-    // Check if scope is full
-    if (scope_full(my_scope))
-    {
+    if (scope_full(my_scope)) {
         bail_with_error("Attempted to insert an association into a full scope!");
     }
-
-    // Attempt to allocate space for new association
     scope_assoc* new_assoc = (scope_assoc*)malloc(sizeof(scope_assoc)); // FREE THIS
     if (new_assoc == NULL) bail_with_error("No space to allocate association!");
 
-    // Set name and attribute fields of new association
     new_assoc->name = my_name;
     new_assoc->attrs = my_attrs;
-
-    // Set current offset count of association and increment it
     new_assoc->attrs->offset_count = scope_loc_count(my_scope);
     my_scope->loc_count++;
-
-    // Set proper index in association array to the new association,
-    // then increment size of scope
     my_scope->assoc_arr[scope_size(my_scope)] = new_assoc;
     my_scope->size++;
 }
@@ -118,34 +112,19 @@ void scope_insert(scope* my_scope, const char* my_name, id_attrs* my_attrs)
 // returns NULL if an association cannot be found for my_name.
 id_attrs* scope_lookup(scope* my_scope, const char* my_name)
 {
-    // Check if name is NULL
-    if (my_name == NULL)
-    {
+    if (my_name == NULL) {
         bail_with_error("Attempted to lookup a NULL name!");
     }
-
-    // Traverse association array to search for name
-    for (int i = 0; i < scope_size(my_scope); i++)
-    {
-        // Check if association is NULL
-        if (my_scope->assoc_arr[i] == NULL)
-        {
+    for (int i = 0; i < scope_size(my_scope); i++) {
+        if (my_scope->assoc_arr[i] == NULL) {
             bail_with_error("Attempting to access a NULL association!");
         }
-
-        // Check if association's name is NULL
-        if (my_scope->assoc_arr[i]->name == NULL)
-        {
+        if (my_scope->assoc_arr[i]->name == NULL) {
             bail_with_error("Attempting to access a NULL name!");
         }
-
-        // Check if current association's name is the name we're looking for
-        if (!strcmp(my_scope->assoc_arr[i]->name, my_name))
-        {
+        if (!strcmp(my_scope->assoc_arr[i]->name, my_name)) {
             return my_scope->assoc_arr[i]->attrs;
         }
     }
-
-    // Name not found in the scope
     return NULL;
 }

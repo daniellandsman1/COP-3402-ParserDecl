@@ -29,6 +29,10 @@ typedef struct
 extern scope* scope_initialize();
 
 // Pre-Conditions: my_scope is not NULL.
+// Post-Conditions: Frees all memory associated with the given scope.
+extern void scope_destroy(scope *my_scope);  // Added declaration for scope_destroy
+
+// Pre-Conditions: my_scope is not NULL.
 // Post-Conditions: Returns the number of associations in my_scope.
 extern address_type scope_loc_count(scope* my_scope);
 
