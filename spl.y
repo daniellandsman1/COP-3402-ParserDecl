@@ -100,6 +100,7 @@ extern void yyerror(const char *filename, const char *msg);
 %type <expr> expr
 %type <expr> term
 %type <expr> factor
+%type <token> sign
 
 %start program
 
@@ -206,9 +207,10 @@ term : factor
 
 factor : identsym { $$ = ast_expr_ident($1); }
        | numbersym { $$ = ast_expr_number($1); }
-       | "-" factor { $$ = ast_expr_signed_expr($1, $2); }
-       | "+" factor { $$ = ast_expr_signed_expr($1, $2); }
+       | sign factor { $$ = ast_expr_signed_expr($1, $2); }
        | "(" expr ")" { $$ = $2; } ;
+
+sign : "-" | "+" ;
 
 %%
 
