@@ -15,7 +15,7 @@ typedef struct {
 } symtab;
 
 // Initialize the symbol table, setting the current level to -1 (empty stack).
-void symtab_initialize(symtab *st);
+void symtab_initialize();
 
 // Enter a new scope by pushing it onto the symbol table stack.
 void symtab_enter_scope(symtab *st);

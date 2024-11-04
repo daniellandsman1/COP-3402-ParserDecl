@@ -6,19 +6,21 @@
 #include "symtab.h"
 #include "utilities.h"
 #include "ast.h"
+#include "scope_check.h"  // Ensure this is included to define check_declarations
 
-// Forward declaration for recursive checking function
-void check_declarations(symtab *st, AST *node);
+// Create a static symbol table instance for use within this file
+static symtab st_instance;
 
-// Main function to check program declarations
-void scope_check_program(symtab *st, AST *program_ast) {
-    symtab_initialize(st);        // Initialize the symbol table
-    symtab_enter_scope(st);       // Enter global scope
-    check_declarations(st, program_ast); // Perform declaration checks
-    symtab_exit_scope(st);        // Exit global scope
+void scope_check_program(AST *program_ast) {
+    symtab_initialize();             // Call without parameters
+    symtab_enter_scope(&st_instance);  // Enter global scope
+    check_declarations(&st_instance, program_ast);  // Perform declaration checks
+    symtab_exit_scope(&st_instance);  // Exit global scope
 }
 
-// Recursively checks declarations in the AST
+// Forward declaration for the recursive checking function
+void check_declarations(symtab *st, AST *node);
+
 void check_declarations(symtab *st, AST *node) {
     if (node == NULL) return;
 
@@ -43,7 +45,7 @@ void check_declarations(symtab *st, AST *node) {
                 id_attrs *attrs = create_id_attrs(*node->proc_decl.file_loc, procedure_idk, st->scopes[st->current_level]->size);
                 symtab_insert(st, node->proc_decl.name, attrs);
             }
-            symtab_enter_scope(st);    // New scope for the procedure's block
+            symtab_enter_scope(st);  // New scope for the procedure's block
             check_declarations(st, (AST *)&node->proc_decl.block->stmts); // Check statements in the new scope
             symtab_exit_scope(st);
             break;
@@ -57,7 +59,6 @@ void check_declarations(symtab *st, AST *node) {
             break;
 
         default:
-            // Handle child nodes according to AST type and structure
             break;
     }
 }

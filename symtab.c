@@ -7,9 +7,12 @@
 #include "scope.h"       // Ensure scope.h is included for scope_destroy
 #include "utilities.h"
 
+// Define a static symbol table instance to be used internally
+static symtab st_instance;
+
 // Initialize the symbol table
-void symtab_initialize(symtab *st) {
-    st->current_level = -1;  // Start with no scopes
+void symtab_initialize() {
+    st_instance.current_level = -1;  // Start with no scopes
 }
 
 // Enter a new scope

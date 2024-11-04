@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     symtab_initialize();
 
     // check for duplicate declarations
-    scope_check_program(progast);
+    scope_check_program(&progast);
 
     return EXIT_SUCCESS;
 }
