@@ -1,4 +1,4 @@
-// Ryan Rohan
+// Ryan Rohan, Michael John
 // scope_check.c: Implements the main declaration checker
 
 #include <stdlib.h>
@@ -26,21 +26,26 @@ void check_declarations(symtab *st, AST *node) {
 
     switch (node->generic.type_tag) {
         case var_decl_ast:
-            if (symtab_lookup(st, node->var_decl.ident_list.start->name) != NULL) {
-                formatted_yyerror(node->var_decl.ident_list.start->file_loc->filename, 
-                    "Duplicate declaration of variable '%s' at line %d.", 
-                    node->var_decl.ident_list.start->name, ast_line(*node));
-            } else {
-                id_attrs *attrs = create_id_attrs(*node->var_decl.ident_list.start->file_loc, variable_idk, st->scopes[st->current_level]->size);
-                symtab_insert(st, node->var_decl.ident_list.start->name, attrs);
+            // Check for duplicate variable declaration
+            for (int i = 0; i < node->var_decl.ident_list.size; i++) {
+                const char *identifier = node->var_decl.ident_list.start[i].name;
+                if (symtab_lookup(st, identifier) != NULL) {
+                    bail_with_prog_error(*node->var_decl.ident_list.start[i].file_loc,
+                        "Duplicate declaration of variable '%s'.", 
+                        identifier);
+                } else {
+                    id_attrs *attrs = create_id_attrs(*node->var_decl.ident_list.start[i].file_loc, variable_idk, st->scopes[st->current_level]->size);
+                    symtab_insert(st, identifier, attrs);
+                }
             }
             break;
 
         case proc_decl_ast:
+            // Check for duplicate procedure declaration
             if (symtab_lookup(st, node->proc_decl.name) != NULL) {
-                formatted_yyerror(node->proc_decl.file_loc->filename, 
-                    "Duplicate declaration of procedure '%s' at line %d.", 
-                    node->proc_decl.name, ast_line(*node));
+                bail_with_prog_error(*node->proc_decl.file_loc,
+                    "Duplicate declaration of procedure '%s'.", 
+                    node->proc_decl.name);
             } else {
                 id_attrs *attrs = create_id_attrs(*node->proc_decl.file_loc, procedure_idk, st->scopes[st->current_level]->size);
                 symtab_insert(st, node->proc_decl.name, attrs);
@@ -51,14 +56,30 @@ void check_declarations(symtab *st, AST *node) {
             break;
 
         case ident_ast:
+            // Check for undeclared identifiers
             if (symtab_lookup(st, node->ident.name) == NULL) {
-                formatted_yyerror(node->ident.file_loc->filename, 
-                    "Undeclared identifier '%s' used at line %d.", 
-                    node->ident.name, ast_line(*node));
+                bail_with_prog_error(*node->ident.file_loc,
+                    "Undeclared identifier '%s' used.", 
+                    node->ident.name);
+            }
+            break;
+
+        case block_ast:
+            // Check for syntax errors within the block
+            for (int i = 0; i < node->block.stmts.size; i++) {
+                if (node->block.stmts.start[i].type_tag == unexpected_token_ast) {
+                    // Placeholder for expected tokens
+                    const char *expected_tokens = "unknown token";
+                    bail_with_prog_error(*node->block.stmts.start[i].file_loc,
+                        "Syntax error: unexpected token. Expected tokens: %s", expected_tokens);
+                } else {
+                    check_declarations(st, &node->block.stmts.start[i]); // Recursively check statements
+                }
             }
             break;
 
         default:
+            // Handle other cases or ignore
             break;
     }
 }
