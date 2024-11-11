@@ -8,7 +8,7 @@
 
 // Pre-Conditions: Block is a valid block AST
 // Post-Conditions: Performs declaration checking on block
-extern block_t scope_check_block(block_t block);
+extern block_t scope_check_program(block_t block);
 
 // Pre-Conditions: varDs is a valid var_decls AST
 // Post-Conditions: Performs declaration checking on varDs

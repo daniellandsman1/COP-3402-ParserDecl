@@ -4,12 +4,13 @@
 #include <stdio.h>
 #include "id_use.h"
 #include "id_attrs.h"
+#include "utilities.h"
 #include "scope_checkv2.h"
 #include "symtabv2.h"
 
 // Pre-Conditions: Block is a valid block AST
 // Post-Conditions: Performs declaration checking on block
-block_t scope_check_block(block_t block)
+block_t scope_check_program(block_t block)
 {
     symtab_enter_scope(); // Enter scope
     scope_check_constDecls(block.const_decls); // Check const declarations
@@ -99,17 +100,27 @@ void scope_check_procDecl(proc_decl_t procD)
 {
     if (symtab_name_declared_currently(procD.name)) // If duplicate declaration, produce error
     {
-        bail_with_prog_error(*(procD.file_loc), "%s \"%s\" is already declared as a %s", 
-                             kind2str(procedure_idk), procD.name, kind2str((symtab_lookup(procD.name))->attrs->kind));
+        if (procD.file_loc != NULL)
+        {
+            bail_with_prog_error(*(procD.file_loc), "%s \"%s\" is already declared as a %s", 
+                                 kind2str(procedure_idk), procD.name, kind2str((symtab_lookup(procD.name))->attrs->kind));
+        }
     }
 
     else // No duplicate declaration, add to symbol table
     {
-        int ofst_cnt = symtab_scope_loc_count(); // Record offset // FREE THIS
-        id_attrs* my_attrs = create_id_attrs(*(procD.file_loc), procedure_idk, ofst_cnt); // Create attributes
-        symtab_insert(procD.name, my_attrs); // Insert into symbol table
+        int ofst_cnt = symtab_scope_loc_count(); // Record offset
 
-        procD.block = scope_check_block(procD.block); // Scope check procedure block
+        if (procD.file_loc != NULL)
+        {
+            id_attrs* my_attrs = create_id_attrs(*(procD.file_loc), procedure_idk, ofst_cnt); // Create attributes // FREE THIS
+            symtab_insert(procD.name, my_attrs); // Insert into symbol table
+
+            if (procD.block != NULL)
+            {
+                *(procD.block) = scope_check_program(*procD.block); // Scope check procedure block
+            }
+        }
     }
 }
 
@@ -132,15 +143,22 @@ void scope_check_declare_ident(ident_t ident, id_kind kind)
 {
     if (symtab_name_declared_currently(ident.name)) // Check for duplicate declaration
     {
-        bail_with_prog_error(*(ident.file_loc), "%s \"%s\" is already declared as a %s", 
-                             kind2str(kind), ident.name, kind2str((symtab_lookup(ident.name))->attrs->kind));
+        if (ident.file_loc != NULL)
+        {
+            bail_with_prog_error(*(ident.file_loc), "%s \"%s\" is already declared as a %s", 
+                                 kind2str(kind), ident.name, kind2str((symtab_lookup(ident.name))->attrs->kind));
+        }
     }
 
     else // No duplicate declaration, add to symbol table
     {
-        int ofst_cnt = symtab_scope_loc_count(); // Record offset // FREE THIS
-        id_attrs* my_attrs = create_id_attrs(*(ident.file_loc), kind, ofst_cnt); // Create attributes
-        symtab_insert(ident.name, my_attrs); // Insert into symbol table
+        int ofst_cnt = symtab_scope_loc_count(); // Record offset
+
+        if (ident.file_loc != NULL)
+        {
+            id_attrs* my_attrs = create_id_attrs(*(ident.file_loc), kind, ofst_cnt); // Create attributes // FREE THIS
+            symtab_insert(ident.name, my_attrs); // Insert into symbol table
+        }
     }
 }
 
@@ -184,8 +202,15 @@ stmt_t scope_check_stmt(stmt_t statement)
 // Post-Conditions: Performs declaration checking on aStmt
 assign_stmt_t scope_check_assignStmt(assign_stmt_t aStmt)
 {
-    scope_check_ident_declared(*(aStmt.file_loc), aStmt.name); // Make sure ident is declared
-    *(aStmt.expr) = scope_check_expr(*(aStmt.expr)); // Scope check expression
+    if (aStmt.file_loc != NULL)
+    {
+        scope_check_ident_declared(*(aStmt.file_loc), aStmt.name); // Make sure ident is declared
+
+        if (aStmt.expr != NULL)
+        {
+            *(aStmt.expr) = scope_check_expr(*(aStmt.expr)); // Scope check expression
+        }
+    }
 
     return aStmt;
 }
@@ -194,7 +219,10 @@ assign_stmt_t scope_check_assignStmt(assign_stmt_t aStmt)
 // Post-Conditions: Performs declaration checking on cStmt
 call_stmt_t scope_check_callStmt(call_stmt_t cStmt)
 {
-    scope_check_ident_declared(*(cStmt.file_loc), cStmt.name); // Make sure ident is declared
+    if (cStmt.file_loc != NULL)
+    {
+        scope_check_ident_declared(*(cStmt.file_loc), cStmt.name); // Make sure ident is declared
+    }
 
     return cStmt;
 }
@@ -204,7 +232,11 @@ call_stmt_t scope_check_callStmt(call_stmt_t cStmt)
 if_stmt_t scope_check_ifStmt(if_stmt_t iStmt)
 {
     iStmt.condition = scope_check_condition(iStmt.condition); // Scope check condition
-    *(iStmt.then_stmts) = scope_check_stmts(*(iStmt.then_stmts)); // Scope check then statements
+
+    if (iStmt.then_stmts != NULL)
+    {
+        *(iStmt.then_stmts) = scope_check_stmts(*(iStmt.then_stmts)); // Scope check then statements
+    }
 
     if (iStmt.else_stmts != NULL) // If there are else statements, scope check those too
     {
@@ -219,7 +251,11 @@ if_stmt_t scope_check_ifStmt(if_stmt_t iStmt)
 while_stmt_t scope_check_whileStmt(while_stmt_t wStmt)
 {
     wStmt.condition = scope_check_condition(wStmt.condition); // Scope check condition
-    *(wStmt.body) = scope_check_stmts(*(wStmt.body)); // Scope check statements in body of loop
+
+    if (wStmt.body != NULL)
+    {
+        *(wStmt.body) = scope_check_stmts(*(wStmt.body)); // Scope check statements in body of loop
+    }
 
     return wStmt;
 }
@@ -228,7 +264,10 @@ while_stmt_t scope_check_whileStmt(while_stmt_t wStmt)
 // Post-Conditions: Performs declaration checking on rStmt
 read_stmt_t scope_check_readStmt(read_stmt_t rStmt)
 {
-    scope_check_ident_declared(*(rStmt.file_loc), rStmt.name); // Make sure ident is declared
+    if (rStmt.file_loc != NULL)
+    {
+        scope_check_ident_declared(*(rStmt.file_loc), rStmt.name); // Make sure ident is declared
+    }
 
     return rStmt;
 }
@@ -246,7 +285,10 @@ print_stmt_t scope_check_printStmt(print_stmt_t pStmt)
 // Post-Conditions: Performs declaration checking on bStmt
 block_stmt_t scope_check_blockStmt(block_stmt_t bStmt)
 {
-    *(bStmt.block) = scope_check_block(*(bStmt.block)); // Scope check block
+    if (bStmt.block != NULL)
+    {
+        *(bStmt.block) = scope_check_program(*(bStmt.block)); // Scope check block
+    }
 
     return bStmt;
 }
@@ -255,9 +297,21 @@ block_stmt_t scope_check_blockStmt(block_stmt_t bStmt)
 // Post-Conditions: Performs declaration checking on statements
 stmts_t scope_check_stmts(stmts_t statements)
 {
-    if (statements != NULL) // Takes care of case where statements can be empty
+    // Switch statement to determine what kind of statements, scope check accordingly
+    switch (statements.stmts_kind)
     {
-        statements.stmt_list = scope_check_stmtList(statements.stmt_list); // Scope check statements
+        case empty_stmts_e:
+            // No statements, do nothing
+            break;
+        case stmt_list_e: // Actual statements exist
+            if (statements.stmt_list.start != NULL) // Redundant check, shouldn't be empty
+            {
+                statements.stmt_list = scope_check_stmtList(statements.stmt_list); // Scope check statements
+            }
+            break;
+        default:
+            bail_with_error("Attempted to scope check statements with an invalid statements kind!");
+            break;
     }
 
     return statements;
@@ -308,8 +362,11 @@ expr_t scope_check_expr(expr_t expression)
 // Post-Conditions: Performs declaration checking on binOpExpr
 binary_op_expr_t scope_check_bin_op_expr(binary_op_expr_t binOpExpr)
 {
-    *(binOpExpr.expr1) = scope_check_expr(*(binOpExpr.expr1)); // Scope check first expression
-    *(binOpExpr.expr2) = scope_check_expr(*(binOpExpr.expr2)); // Scope check second expression
+    if (binOpExpr.expr1 != NULL && binOpExpr.expr2 != NULL)
+    {
+        *(binOpExpr.expr1) = scope_check_expr(*(binOpExpr.expr1)); // Scope check first expression
+        *(binOpExpr.expr2) = scope_check_expr(*(binOpExpr.expr2)); // Scope check second expression
+    }
 
     return binOpExpr;
 }
@@ -318,7 +375,10 @@ binary_op_expr_t scope_check_bin_op_expr(binary_op_expr_t binOpExpr)
 // Post-Conditions: Performs declaration checking on negExpr
 negated_expr_t scope_check_neg_expr(negated_expr_t negExpr)
 {
-    *(negExpr.expr) = scope_check_expr(*(negExpr.expr)); // Scope check the expression
+    if (negExpr.expr != NULL)
+    {
+        *(negExpr.expr) = scope_check_expr(*(negExpr.expr)); // Scope check the expression
+    }
 
     return negExpr;
 }
@@ -327,14 +387,17 @@ negated_expr_t scope_check_neg_expr(negated_expr_t negExpr)
 // Post-Conditions: Performs declaration checking on ident as an expression
 ident_t scope_check_ident_expr(ident_t ident)
 {
-    scope_check_ident_declared(*(ident.file_loc), ident.name); // Scope check identifier
+    if (ident.file_loc != NULL)
+    {
+        scope_check_ident_declared(*(ident.file_loc), ident.name); // Scope check identifier
+    }
 
     return ident;
 }
 
 // Pre-Conditions: condition is a valid condition AST
 // Post-Conditions: Performs declaration checking on condition
-extern condition_t scope_check_condition(condition_t condition)
+condition_t scope_check_condition(condition_t condition)
 {
     // Switch statement determines what kind of condition, scope check accordingly
     switch (condition.cond_kind)

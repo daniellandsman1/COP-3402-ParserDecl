@@ -69,7 +69,7 @@ extern unsigned int symtab_current_nest_lvl()
 {
     if (symtab_empty())
     {
-        bail_with_error("Symbol table is not in an active scope!")
+        bail_with_error("Symbol table is not in an active scope!");
     }
 
     return symtab_top;
