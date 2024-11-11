@@ -1,6 +1,7 @@
 // Daniel Landsman
 // scope_checkv2.c: scope checking file, includes function bodies
 
+#include <stdio.h>
 #include "id_use.h"
 #include "id_attrs.h"
 #include "scope_checkv2.h"
