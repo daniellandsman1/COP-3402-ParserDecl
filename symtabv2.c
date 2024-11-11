@@ -2,6 +2,7 @@
 // symtabv2.c: symbol table file, includes function bodies
 
 #include "utilities.h"
+#include "symtabv2.h"
 
 static int symtab_top = -1; // Index in symtab array that represents top of stack and current nesting level
 static scope* symtab[MAX_NEST_LVL]; // Declare symbol table
