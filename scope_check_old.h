@@ -1,8 +1,8 @@
 //Michael John
 //Header file for scope_check.c
 
-#ifndef SCOPE_CHECK_H
-#define SCOPE_CHECK_H
+#ifndef SCOPE_CHECK_OLD_H
+#define SCOPE_CHECK_OLD_H
 
 #include "symtab.h"
 #include "ast.h"
