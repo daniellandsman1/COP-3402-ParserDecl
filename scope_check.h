@@ -1,8 +1,8 @@
 // Daniel Landsman
-// scope_checkv2.h: scope checking file, includes function declarations
+// scope_check.h: scope checking file, includes function declarations
 
-#ifndef _SCOPE_CHECKV2_H
-#define _SCOPE_CHECKV2_H
+#ifndef _SCOPE_CHECK_H
+#define _SCOPE_CHECK_H
 #include "ast.h"
 #include "id_use.h"
 
