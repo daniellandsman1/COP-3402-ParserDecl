@@ -1,8 +1,8 @@
 // Daniel Landsman
-// symtabv2.h: symbol table file, includes function declarations
+// symtab.h: symbol table file, includes function declarations
 
-#ifndef _SYMTABV2_H
-#define _SYMTABV2_H
+#ifndef _SYMTAB_H
+#define _SYMTAB_H
 
 #include "scope.h"
 #include "id_use.h"
