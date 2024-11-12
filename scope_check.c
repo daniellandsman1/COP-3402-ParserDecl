@@ -1,12 +1,12 @@
 // Daniel Landsman
-// scope_checkv2.c: scope checking file, includes function bodies
+// scope_check.c: scope checking file, includes function bodies
 
 #include <stdio.h>
 #include "id_use.h"
 #include "id_attrs.h"
 #include "utilities.h"
-#include "scope_checkv2.h"
-#include "symtabv2.h"
+#include "scope_check.h"
+#include "symtab.h"
 
 // Pre-Conditions: Block is a valid block AST
 // Post-Conditions: Performs declaration checking on block
