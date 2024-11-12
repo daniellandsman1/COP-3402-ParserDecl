@@ -1,8 +1,8 @@
 // Ryan Rohan
 // symtab.h: Header file for Symbol Table Management
 
-#ifndef SYMTAB_H
-#define SYMTAB_H
+#ifndef SYMTAB_OLD_H
+#define SYMTAB_OLD_H
 
 #include "scope.h"
 #include "id_attrs.h"
